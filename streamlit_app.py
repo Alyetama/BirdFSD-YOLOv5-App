@@ -9,7 +9,7 @@ from PIL import Image
 
 def main():
     st.title('BirdFSD-YOLOv5')
-    st.markdown('Version: `BirdFSD-YOLOv5-v1.0.0-alpha.1.2`')
+    st.markdown(f'Version: `{os.getenv["VERSION"]}`')
 
     model = torch.hub.load('ultralytics/yolov5',
                            'custom',
