@@ -1,10 +1,9 @@
-import io
 import os
 
 import streamlit as st
 import torch
-from dotenv import load_dotenv
 from PIL import Image
+from dotenv import load_dotenv
 
 
 def main():
@@ -27,20 +26,25 @@ def main():
             col1.image(image)
             model_preds = model(image)
             col2.image(model_preds.render()[0])
-            with st.expander('Bounding box [x, y, w, h], class & score'):
-                for res in model_preds.xywhn[0]:
+            with st.expander(f'Result ({uploaded_file.name})'):
+                result = {}
+                for n, res in enumerate(model_preds.xywhn[0]):
                     x, y, w, h, score, n = res.tolist()
-                    st.code(
-                        f'Bb: {[round(z, 6) for z in [x, y, w, h]]} | Label: {model.names[int(n)]} | Score: {round(score, 2)}'
-                    )
+                    res_dict = {
+                        'label': model.names[int(n)],
+                        'score': round(score, 2),
+                        'xywh': (x, y, w, h)
+                    }
+                    result.update({n: res_dict})
+                st.json(result)
 
 
 if __name__ == '__main__':
     load_dotenv()
     st.set_page_config(page_title='BirdFSD-YOLOv5',
-                   page_icon='🐦',
-                   layout='wide',
-                   initial_sidebar_state='expanded')
+                       page_icon='🐦',
+                       layout='wide',
+                       initial_sidebar_state='expanded')
     st.markdown("""<style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
