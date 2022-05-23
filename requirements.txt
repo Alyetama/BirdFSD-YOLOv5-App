@@ -1,10 +1,3 @@
-torch
 streamlit
-pillow
-opencv-python-headless
-PyYAML>=5.3.1
-torchvision
-matplotlib
-numpy
-seaborn
-python-dotenv
+watchdog
+requests

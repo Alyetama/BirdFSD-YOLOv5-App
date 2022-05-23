@@ -1,18 +1,17 @@
-import os
+import mimetypes
 
+import requests
 import streamlit as st
-import torch
 from PIL import Image
-from dotenv import load_dotenv
 
 
 def main():
     st.title('BirdFSD-YOLOv5')
-    st.markdown(f'Version: `{os.getenv("VERSION")}`')
+    model = requests.get('https://api.aibird.me/model',
+                         data='{"version": "latest"}')
+    model_info = model.json()
 
-    model = torch.hub.load('ultralytics/yolov5',
-                           'custom',
-                           path=os.environ['WEIGHTS'])
+    st.markdown(f'Version: `{model_info["name"]}-v{model_info["version"]}`')
 
     uploaded_files = st.file_uploader('Choose an image file',
                                       accept_multiple_files=True,
@@ -22,27 +21,21 @@ def main():
 
     if uploaded_files:
         for uploaded_file in uploaded_files:
-            image = Image.open(uploaded_file)
-            col1.image(image)
-            model_preds = model(image)
-            col2.image(model_preds.render()[0])
-            with st.expander(f'Result ({uploaded_file.name})'):
-                result = {}
-                n = 0
-                for res in model_preds.xywhn[0]:
-                    x, y, w, h, score, n = res.tolist()
-                    res_dict = {
-                        'label': model.names[int(n)],
-                        'score': round(score, 2),
-                        'xywh': {'x': x, 'y': y, 'w': w, 'h': h}
-                    }
-                    result.update({n: res_dict})
-                    n += 1
+            data = f'{{"file": {uploaded_file.getvalue()}}}'
+            col1.image(Image.open(uploaded_file))
+            fname = uploaded_file.name
+            fdata = uploaded_file.getvalue()
+            content_type = mimetypes.guess_type(uploaded_file.name)[0]
+
+            res = requests.post('https://api.aibird.me/predict',
+                                files={'file': (fname, fdata, content_type)})
+            result = res.json()
+            col2.image(result['results']['labeled_image_url'])
+            with st.expander(f'Results ({uploaded_file.name})'):
                 st.json(result)
 
 
 if __name__ == '__main__':
-    load_dotenv()
     st.set_page_config(page_title='BirdFSD-YOLOv5',
                        page_icon='🐦',
                        layout='wide',
