@@ -28,14 +28,16 @@ def main():
             col2.image(model_preds.render()[0])
             with st.expander(f'Result ({uploaded_file.name})'):
                 result = {}
-                for n, res in enumerate(model_preds.xywhn[0]):
+                n = 0
+                for res in model_preds.xywhn[0]:
                     x, y, w, h, score, n = res.tolist()
                     res_dict = {
                         'label': model.names[int(n)],
                         'score': round(score, 2),
-                        'xywh': (x, y, w, h)
+                        'xywh': {'x': x, 'y': y, 'w': w, 'h': h}
                     }
                     result.update({n: res_dict})
+                    n += 1
                 st.json(result)
 
 
